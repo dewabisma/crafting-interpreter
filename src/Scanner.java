@@ -40,7 +40,7 @@ public class Scanner {
         while (!isAtEnd()) {
             // We are at the beginning of the next lexeme/
             start = current;
-            scanTokens();
+            scanToken();
         }
 
         tokens.add(new Token(TokenType.EOF, "", null, line));
