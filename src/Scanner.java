@@ -71,10 +71,7 @@ public class Scanner {
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else if (match('*')) {
                     // A block comment goes until terminating "*/"
-                    while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
-                        if (peek() == '\n') line++;
-                        advance();
-                    };
+                    blockComment();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -137,12 +134,28 @@ public class Scanner {
         addToken(TokenType.STRING, value);
     }
 
+    private void blockComment() {
+        while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
+            if (peek() == '\n') line++;
+            advance();
+        }
+
+        if (isAtEnd()) {
+            Lox.error(line, "Unclosed block comment.");
+            return;
+        }
+
+        // The terminating "*/"
+        advance();
+        advance();
+    }
+
     /**
      * It will check if the next char after the consumed char
      * by calling advance() match the expected. If it does match
      * then we return true and increment the current index by 1
      *
-     * @param expected the expected value of the {@code char} at current index..
+     * @param expected the expected value of the {@code char} at current index
      * @return the match status of the expected char at current index
      */
     private boolean match(char expected) {
