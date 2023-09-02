@@ -55,6 +55,8 @@ public class Scanner {
             case ')' -> addToken(TokenType.RIGHT_PAREN);
             case '{' -> addToken(TokenType.LEFT_BRACE);
             case '}' -> addToken(TokenType.RIGHT_BRACE);
+            case '?' -> addToken(TokenType.HOOK);
+            case ':' -> addToken(TokenType.COLON);
             case ',' -> addToken(TokenType.COMMA);
             case '.' -> addToken(TokenType.DOT);
             case '-' -> addToken(TokenType.MINUS);

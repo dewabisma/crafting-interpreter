@@ -24,6 +24,9 @@ public class AstPrinter implements Expr.Visitor<String> {
         return parenthesize(expr.operator.lexeme, expr.right);
     }
 
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) { return parenthesize(expr.hook.lexeme + expr.colon.lexeme, expr.comparison, expr.left, expr.right); }
+
     private String parenthesize(String name, Expr... exprs) {
         StringBuilder builder = new StringBuilder();
 
@@ -38,7 +41,7 @@ public class AstPrinter implements Expr.Visitor<String> {
     }
 
     public static void main(String[] args) {
-        Expr expression = new Expr.Binary(
+        Expr expressionOne = new Expr.Binary(
                 new Expr.Unary(
                         new Token(TokenType.MINUS, "-", null, 1),
                         new Expr.Literal(123)
@@ -49,6 +52,18 @@ public class AstPrinter implements Expr.Visitor<String> {
                 )
         );
 
-        System.out.println(new AstPrinter().print(expression));
+        Expr expressionTwo = new Expr.Ternary(
+                new Expr.Binary(
+                        new Expr.Literal(12),
+                        new Token(TokenType.GREATER, ">", null, 1),
+                        new Expr.Literal(20)
+                ),
+                new Token(TokenType.HOOK, "?", null, 1),
+                new Expr.Literal(12),
+                new Token(TokenType.COLON, ":", null, 1),
+                new Expr.Literal(20)
+        );
+
+        System.out.println(new AstPrinter().print(expressionTwo));
     }
 }

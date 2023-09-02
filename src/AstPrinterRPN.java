@@ -24,6 +24,9 @@ public class AstPrinterRPN implements Expr.Visitor<String> {
         return formatExpr(expr.operator.lexeme, expr.right);
     }
 
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) { return formatExpr(expr.hook.lexeme + expr.colon.lexeme, expr.comparison, expr.left, expr.right); }
+
     private String formatExpr(String operand, Expr... exprs) {
         StringBuilder builder = new StringBuilder();
 

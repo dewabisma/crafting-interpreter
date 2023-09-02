@@ -1,7 +1,8 @@
 import java.util.List;
 
 public class Parser {
-    private static class ParseError extends RuntimeException {}
+    private static class ParseError extends RuntimeException {
+    }
 
     private final List<Token> tokens;
     private int current = 0;
@@ -19,7 +20,38 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return comma();
+    }
+
+    private Expr comma() {
+        Expr expr = ternary();
+
+        while (match(TokenType.COMMA)) {
+            Token operator = previous();
+            Expr right = ternary();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr ternary() {
+        Expr expr = equality(); // #1 -> new Expr.Binary(10, >, 2), #2 -> new Expr.Binary(10, <, 2)
+
+        // Example of flow
+        // 10 > 2 ? (10 < 2 ? 2 : 1) : 8 -> new Ternary(new Binary(10, >, 2), ?, new Ternary(new Binary(10, <, 2), ?, 2, :, 1), :, 8)
+        if (match(TokenType.HOOK)) {
+            Token hook = previous(); // #1 -> TokenType.Hook, #2 -> TokenType.Hook
+            Expr left = expression(); // #1 -> new Ternary(new Binary(10, <, 2), ?, 2, :, 1) #2 -> 2
+
+            // After recursively running expression, it must be COLON now
+            consume(TokenType.COLON, "Expect ':' after ternary conditional left operand");
+            Token colon = previous(); // #2 -> TokenType.Colon
+            Expr right = expression(); // #2 -> 1
+            expr = new Expr.Ternary(expr, hook, left, colon, right);
+        }
+
+        return expr;
     }
 
     private Expr equality() {
@@ -37,7 +69,7 @@ public class Parser {
     private Expr comparison() {
         Expr expr = term();
 
-        while(match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+        while (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
             Token operator = previous();
             Expr right = term();
             expr = new Expr.Binary(expr, operator, right);
@@ -49,7 +81,7 @@ public class Parser {
     private Expr term() {
         Expr expr = factor();
 
-        while(match(TokenType.MINUS, TokenType.PLUS)) {
+        while (match(TokenType.MINUS, TokenType.PLUS)) {
             Token operator = previous();
             Expr right = factor();
             expr = new Expr.Binary(expr, operator, right);
@@ -61,7 +93,7 @@ public class Parser {
     private Expr factor() {
         Expr expr = unary();
 
-        while(match(TokenType.SLASH, TokenType.STAR)) {
+        while (match(TokenType.SLASH, TokenType.STAR)) {
             Token operator = previous();
             Expr right = unary();
             expr = new Expr.Binary(expr, operator, right);
@@ -81,9 +113,9 @@ public class Parser {
     }
 
     private Expr primary() {
-        if (match(TokenType.FALSE))  return new Expr.Literal(false);
-        if (match(TokenType.TRUE))  return new Expr.Literal(true);
-        if (match(TokenType.NIL))  return new Expr.Literal(null);
+        if (match(TokenType.FALSE)) return new Expr.Literal(false);
+        if (match(TokenType.TRUE)) return new Expr.Literal(true);
+        if (match(TokenType.NIL)) return new Expr.Literal(null);
 
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Expr.Literal(previous().literal);
@@ -149,7 +181,8 @@ public class Parser {
             if (previous().type == TokenType.SEMICOLON) return;
 
             switch (peek().type) {
-                case CLASS, FUN, VAR, FOR, IF, WHILE, PRINT -> {}
+                case CLASS, FUN, VAR, FOR, IF, WHILE, PRINT -> {
+                }
                 case RETURN -> {
                     return;
                 }
