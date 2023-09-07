@@ -25,6 +25,11 @@ public class AstPrinterRPN implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visitVariableExpr(Expr.Variable expr) {
+        return expr.name.lexeme;
+    }
+
+    @Override
     public String visitTernaryExpr(Expr.Ternary expr) { return formatExpr(expr.hook.lexeme + expr.colon.lexeme, expr.comparison, expr.left, expr.right); }
 
     private String formatExpr(String operand, Expr... exprs) {

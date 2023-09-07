@@ -1,3 +1,9 @@
-print true;
-print "bisma";
-print 1 + 2;
+var a = 12;
+var b = 24;
+var c = 48;
+
+print a;
+print b;
+print c;
+print a + b;
+print a + b + c;
