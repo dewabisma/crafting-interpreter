@@ -21,9 +21,46 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         stmt.accept(this);
     }
 
+    /**
+     * @implNote
+     * This one is inelegant because of mutating state
+     * another way to do this is having visit method access the local environment
+     * that is tedious though
+     */
+    void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+
+        try {
+            this.environment = environment;
+
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+
         return null;
     }
 
@@ -95,6 +132,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     return left.toString() + right.toString();
                 }
 
+                if (left instanceof String && right instanceof Double) {
+                    return left.toString() + stringify(right);
+                }
+
+                if (left instanceof Double && right instanceof String) {
+                    return stringify(left) + right.toString();
+                }
+
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
             }
             case SLASH -> {
@@ -114,6 +159,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
+    }
+
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.left);
+
+        // This control flow will short circuit for OR / AND
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
     }
 
     @Override

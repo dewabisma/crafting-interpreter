@@ -34,9 +34,25 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    private Stmt ifStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(TokenType.ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private Stmt printStatement() {
@@ -63,6 +79,17 @@ public class Parser {
         consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 
         return new Stmt.Expression(expr);
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     private Expr expression() {
@@ -100,7 +127,7 @@ public class Parser {
     }
 
     private Expr ternary() {
-        Expr expr = equality(); // #1 -> new Expr.Binary(10, >, 2), #2 -> new Expr.Binary(10, <, 2)
+        Expr expr = or(); // #1 -> new Expr.Binary(10, >, 2), #2 -> new Expr.Binary(10, <, 2)
 
         // Example of flow
         // 10 > 2 ? (10 < 2 ? 2 : 1) : 8 -> new Ternary(new Binary(10, >, 2), ?, new Ternary(new Binary(10, <, 2), ?, 2, :, 1), :, 8)
@@ -113,6 +140,32 @@ public class Parser {
             Token colon = previous(); // #2 -> TokenType.Colon
             Expr right = expression(); // #2 -> 1
             expr = new Expr.Ternary(expr, hook, left, colon, right);
+        }
+
+        return expr;
+    }
+
+    // MARK: OR
+    private Expr or() {
+        Expr expr = and();
+
+        while(match(TokenType.OR)) {
+            Token operator = previous();
+            Expr right = and();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    // MARK: AND
+    private Expr and() {
+        Expr expr = equality();
+
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Logical(expr, operator, right);
         }
 
         return expr;

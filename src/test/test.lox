@@ -1,9 +1,20 @@
-var a = 12;
-var b = 24;
-var c = 48;
+var panjang = 10;
+var lebar = 24;
+var hasil;
 
-print a;
+hasil = panjang * lebar;
+
+print "Hasil hitung luas persegi panjang";
+print "panjang " + panjang + "cm";
+print "lebar " + lebar + "cm";  
+print "hasilnya, " + hasil + "cm";
+
+var a = 1;
+{
+    var a = a + 2;
+    print a;
+}
+
+var b;
+
 print b;
-print c;
-print a + b;
-print a + b + c;
