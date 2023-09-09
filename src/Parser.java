@@ -22,6 +22,17 @@ public class Parser {
         return statements;
     }
 
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
     private Stmt statement() {
         if (match(TokenType.PRINT)) return printStatement();
 
@@ -58,24 +69,31 @@ public class Parser {
         return comma();
     }
 
-    private Stmt declaration() {
-        try {
-            if (match(TokenType.VAR)) return varDeclaration();
-
-            return statement();
-        } catch (ParseError error) {
-            synchronize();
-            return null;
-        }
-    }
-
     private Expr comma() {
-        Expr expr = ternary();
+        Expr expr = assignment();
 
         while (match(TokenType.COMMA)) {
             Token operator = previous();
-            Expr right = ternary();
+            Expr right = assignment();
             expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr assignment() {
+        Expr expr = ternary();
+
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
         }
 
         return expr;
