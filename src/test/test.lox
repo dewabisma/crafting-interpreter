@@ -10,3 +10,7 @@ print "Hasil hitung luas persegi panjang";
 print "panjang " + panjang + "cm";
 print "lebar " + lebar + "cm";  
 print "hasilnya, " + hasil + "cm";
+
+for (var i = 10; i >= 1; i = i - 1) {
+    print i;
+}

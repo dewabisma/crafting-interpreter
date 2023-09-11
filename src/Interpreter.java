@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
@@ -5,9 +6,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     public void interpret(List<Stmt> statements) {
         try {
-           for (Stmt statement : statements) {
-               execute(statement);
-           }
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
@@ -22,8 +23,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     /**
-     * @implNote
-     * This one is inelegant because of mutating state
+     * @implNote This one is inelegant because of mutating state
      * another way to do this is having visit method access the local environment
      * that is tedious though
      */
@@ -85,7 +85,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        while(isTruthy(evaluate(stmt.condition))) {
+        while (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body);
         }
 
@@ -118,7 +118,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 checkNumberOperands(expr.operator, left, right);
                 return objectToDouble(left) < objectToDouble(right);
             }
-            case LESS_EQUAL ->  {
+            case LESS_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right);
                 return objectToDouble(left) <= objectToDouble(right);
             }
@@ -128,7 +128,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             case EQUAL_EQUAL -> {
                 return isEqual(left, right);
             }
-            case MINUS ->  {
+            case MINUS -> {
                 checkNumberOperands(expr.operator, left, right);
                 return objectToDouble(left) - objectToDouble(right);
             }
@@ -163,6 +163,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         // Unreachable
         return null;
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        List<Object> arguments = new ArrayList<>();
+        for (Expr argument : expr.arguments) {
+            arguments.add(evaluate(argument));
+        }
+
+        if (!(callee instanceof LoxCallable)) {
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+        }
+
+        return function.call(this, arguments);
     }
 
     @Override
