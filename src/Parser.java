@@ -180,7 +180,7 @@ public class Parser {
     }
 
     private Expr expression() {
-        return comma();
+        return assignment();
     }
 
     private Expr comma() {
@@ -323,6 +323,7 @@ public class Parser {
                 if (arguments.size() >= 255) {
                     error(peek(), "Can't have more than 255 arguments.");
                 }
+
                 arguments.add(expression());
             } while (match(TokenType.COMMA));
         }

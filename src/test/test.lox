@@ -1,16 +1,15 @@
-var panjang = 10;
-var lebar = 24;
-var hasil;
-var jenis = "tambah";
+fun hitungLuasBangun(a, b, jenis) {
+    if (jenis == "segitiga") {
+     return (a * b) / 2;
+    }
 
-if (jenis == "tambah") hasil = panjang + lebar;
-else hasil = panjang * lebar;
-
-print "Hasil hitung luas persegi panjang";
-print "panjang " + panjang + "cm";
-print "lebar " + lebar + "cm";  
-print "hasilnya, " + hasil + "cm";
-
-for (var i = 10; i >= 1; i = i - 1) {
-    print i;
+    if (jenis == "persegi") {
+        return a * b;
+    }
 }
+
+var luasSegiEmpat = hitungLuasBangun(5, 10, "persegi");
+var luasSegiTiga = hitungLuasBangun(4, 8, "segitiga");
+
+print "Luas Segi Empat: " + luasSegiEmpat;
+print "Luas Segi Tiga: " + luasSegiTiga;
